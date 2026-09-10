@@ -92,7 +92,6 @@
         }
         .header .subtitle { font-size: 1em; opacity: 0.9; font-weight: 300; text-shadow: 0 1px 4px rgba(0,0,0,0.8); margin-top: 10px; }
         .header .logo-icon { font-size: 3em; margin-bottom: 10px; }
-        .sync-badge { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 0.7em; color: #2ecc71; letter-spacing: 1px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); opacity: 0.9; white-space: nowrap; }
         .sync-badge-form { font-size: 0.75em; color: #2ecc71; text-align: center; margin-bottom: 5px; letter-spacing: 1px; }
         .backup-section { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; padding-top: 10px; border-top: 1px solid #2a2a3a; }
 
@@ -413,7 +412,7 @@
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; border-radius: 0; background: white; }
-            .btn-group, .nav-tabs { display: none; }
+            .btn-group, .nav-tabs, .backup-section { display: none !important; }
             .tab-content { display: block !important; padding: 20px; background: white; }
             .aluno-item { background: white; border: 1px solid #ddd; color: black; }
             .aluno-info h4 { color: black; }
@@ -464,6 +463,8 @@
             .btn-group { gap: 10px; }
             .checkbox-group { gap: 10px; }
             .checkbox-group label { font-size: 0.9em; }
+            .backup-section { flex-direction: column; align-items: stretch; }
+            .backup-section .btn { width: 100%; }
         }
     </style>
 </head>
@@ -1046,7 +1047,7 @@
             <div class="detail-row"><span class="detail-label">Coxa D / E</span><span class="detail-value">${c.medidas && c.medidas.coxaD ? c.medidas.coxaD + ' / ' : '- / '}${c.medidas && c.medidas.coxaE ? c.medidas.coxaE : '-'} cm</span></div>
             <div class="detail-row"><span class="detail-label">Panturrilha D / E</span><span class="detail-value">${c.medidas && c.medidas.panturrilhaD ? c.medidas.panturrilhaD + ' / ' : '- / '}${c.medidas && c.medidas.panturrilhaE ? c.medidas.panturrilhaE : '-'} cm</span></div>
 
-            ${c.observacoes ? '<h3 class="section-title">&#128221; Observações</h3><p style="padding:10px;background:#f9f9f9;border-radius:6px;font-size:0.9em;">' + c.observacoes + '</p>' : ''}
+            ${c.observacoes ? '<h3 class="section-title">&#128221; Observações</h3><p style="padding:10px;background:#1a1a2e;border:1px solid #2a2a3a;border-radius:6px;font-size:0.9em;color:#f0f0f0;">' + c.observacoes + '</p>' : ''}
 
             <p style="margin-top:15px;font-size:0.75em;color:#aaa;text-align:right;">Cadastrado em: ${new Date(c.dataCadastro).toLocaleString('pt-BR')}</p>
         `;
@@ -1247,7 +1248,11 @@
                 }
                 salvarNoBanco(dados);
                 alert('Backup restaurado com sucesso!\n\nTotal de cadastros: ' + dados.length);
-                renderizarLista();
+                if (document.getElementById('aba-lista').classList.contains('active')) {
+                    renderizarLista();
+                } else if (document.getElementById('aba-pendentes').classList.contains('active')) {
+                    renderizarPendentes();
+                }
             } catch (err) {
                 alert('Erro ao ler o arquivo de backup.\n\nVerifique se o arquivo esta correto.');
             }
