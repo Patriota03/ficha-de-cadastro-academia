@@ -93,6 +93,8 @@
         .header .subtitle { font-size: 1em; opacity: 0.9; font-weight: 300; text-shadow: 0 1px 4px rgba(0,0,0,0.8); margin-top: 10px; }
         .header .logo-icon { font-size: 3em; margin-bottom: 10px; }
         .sync-badge { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 0.7em; color: #2ecc71; letter-spacing: 1px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); opacity: 0.9; white-space: nowrap; }
+        .sync-badge-form { font-size: 0.75em; color: #2ecc71; text-align: center; margin-bottom: 5px; letter-spacing: 1px; }
+        .backup-section { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; padding-top: 10px; border-top: 1px solid #2a2a3a; }
 
         /* NAV TABS */
         .nav-tabs {
@@ -482,7 +484,6 @@
                 <textPath href="#curve" startOffset="50%" text-anchor="middle" class="header-curved-text">Academia Performance</textPath>
             </text>
         </svg>
-        <p class="sync-badge">✔ Sincronizado com GitHub - Patriota03</p>
     </div>
 
     <div class="nav-tabs">
@@ -494,6 +495,7 @@
     <!-- ABA CADASTRO -->
     <div class="tab-content active" id="aba-cadastro">
         <form id="fichaCadastro">
+            <p class="sync-badge-form">✔ Sincronizado com GitHub - Patriota03</p>
             <h3 class="section-title">&#128100; Dados Pessoais</h3>
 
             <div class="form-row single">
@@ -672,6 +674,11 @@
     </div>
 
     <div class="footer">
+        <div class="backup-section">
+            <button type="button" class="btn btn-print" onclick="fazerBackup()">&#128190; Fazer Backup (JSON)</button>
+            <button type="button" class="btn btn-secondary" onclick="restaurarBackup()">&#128194; Restaurar Backup</button>
+            <input type="file" id="inputBackup" accept=".json" style="display:none" onchange="importarBackup(event)">
+        </div>
         <p>&copy; 2026 Academia Performance - Todos os direitos reservados</p>
     </div>
 </div>
@@ -1198,6 +1205,55 @@
         document.getElementById('vencimento').value = dataAtualISO();
         document.getElementById('btnSalvar').textContent = 'Salvar Cadastro';
         editandoId = null;
+    }
+
+    // ---- BACKUP / RESTAURAR ----
+    function fazerBackup() {
+        const cadastros = carregarCadastros();
+        if (cadastros.length === 0) {
+            alert('Nenhum cadastro para fazer backup.');
+            return;
+        }
+        const dados = JSON.stringify(cadastros, null, 2);
+        const blob = new Blob([dados], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'backup-academia-' + dataAtualISO() + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('Backup realizado com sucesso!\n\nArquivo: backup-academia-' + dataAtualISO() + '.json\nTotal de cadastros: ' + cadastros.length);
+    }
+
+    function restaurarBackup() {
+        document.getElementById('inputBackup').click();
+    }
+
+    function importarBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const dados = JSON.parse(e.target.result);
+                if (!Array.isArray(dados)) {
+                    alert('Arquivo de backup invalido.');
+                    return;
+                }
+                if (!confirm('Deseja restaurar o backup?\n\nIsso ira SUBSTITUIR todos os cadastros atuais.\nTotal de cadastros no backup: ' + dados.length)) {
+                    return;
+                }
+                salvarNoBanco(dados);
+                alert('Backup restaurado com sucesso!\n\nTotal de cadastros: ' + dados.length);
+                renderizarLista();
+            } catch (err) {
+                alert('Erro ao ler o arquivo de backup.\n\nVerifique se o arquivo esta correto.');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
     }
 
     limparFormulario();
